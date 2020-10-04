@@ -1,5 +1,3 @@
-#FROM 202306134469.dkr.ecr.us-west-2.amazonaws.com/dataeng-datasci-ooklaverse-shiny:0.6.1
-# get shiny serves plus tidyverse packages image
 FROM rocker/shiny-verse:latest
 
 ENV SHINY_LOG_STDERR 1
