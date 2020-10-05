@@ -717,10 +717,11 @@ server <- function(input, output) {
       geom_vline(xintercept = city_weighted_mean, linetype = 2, color = vline_color) +
       theme_half_open() +
       labs(x = dist_subtitle, y = "") +
-      theme(text = element_text("Lato"),
+      theme(text = element_text("Lato", size = 20),
             axis.text.y = element_blank(),
             axis.line.y=element_blank(),
-            axis.ticks = element_blank())
+            axis.ticks = element_blank(),
+            axis.text.x = element_text(size = 20))
 
     p_city <- ggdraw() +
       draw_plot(p_city) +
@@ -781,11 +782,10 @@ server <- function(input, output) {
       geom_vline(xintercept = county_weighted_mean, linetype = 2, color = vline_color_county) +
       theme_half_open() +
       labs(x = dist_subtitle_county, y = "") +
-      theme(text = element_text("Lato", size = 16, color = "gray20"),
+      theme(text = element_text("Lato", size = 20, color = "gray20"),
             axis.text.y = element_blank(),
             axis.line.y=element_blank(),
             axis.ticks = element_blank())
-
     incProgress(amount = 0.8)
     
     p_county <- ggdraw() +
@@ -809,7 +809,7 @@ server <- function(input, output) {
 
     content = function(file) {
 
-      ggsave(file, vals$p_city, dpi = 300, width = 7, height = 7, type = "cairo")
+      ggsave(file, vals$p_city, dpi = 300, width = 8, height = 8, type = "cairo")
 
     }
   )
