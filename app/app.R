@@ -104,19 +104,17 @@ plot_styling <- list(
   scale_fill_manual(
     values = map_colors,
     guide = guide_legend(
-      title = "Fixed Internet Download Speed",
+      title = NULL,
       direction = "horizontal",
       keyheight = unit(4, units = "mm"),
-      keywidth = unit(50 / length(labels), units = "mm"),
+      keywidth = unit(40 / length(labels), units = "mm"),
       title.position = "top",
       # I shift the labels around, the should be placed
       # exactly at the right end of each legend key
-      title.hjust = 1,
       label.hjust = 1,
       nrow = 1,
       byrow = T,
       order = 1,
-      label.theme = element_text(size = legend_text_size),
       label.position = "bottom"
     ),
     labels = c("0 to 10 Mbps", "10 to 25\n(slow)", "25 to 100\n(acceptable)", "100+\n(high-speed)"),
@@ -128,7 +126,7 @@ plot_styling <- list(
   theme(
     text = element_text(family = "Lato", size = legend_text_size),
     legend.position = "top",
-    legend.text = element_text(family = "Lato", lineheight = 0.8, size = 16),
+    legend.text = element_text(family = "Lato", lineheight = 0.8, size = 18),
     plot.title = element_textbox_simple(size = title_size, margin = margin(30, 0, 30, 0), color = "gray30"),
     plot.title.position = "plot",
     plot.caption.position = "plot",
@@ -226,7 +224,7 @@ vals <- reactiveValues()
 # Define UI
 ui <- function(request) {
   navbarPage(
-    # tags$head(includeHTML(("google-analytics.html"))),
+    # tags$head(includeHTML(("www/google-analytics.html"))),
     "Local Fixed Internet Maps",
     tabPanel(
       "About",
@@ -588,11 +586,11 @@ server <- function(input, output) {
         labs(x = dist_subtitle, y = "") +
         scale_x_continuous(n.breaks = 4) +
         theme(
-          text = element_text("Lato", size = 12, color = "gray20"),
+          text = element_text("Lato", size = 17, color = "gray20"),
           axis.text.y = element_blank(),
           axis.line.y = element_blank(),
           axis.ticks = element_blank(),
-          axis.text.x = element_text(size = 12)
+          axis.text.x = element_text(size = 16)
         )
 
       p_city <- ggdraw() +
@@ -659,11 +657,11 @@ server <- function(input, output) {
         theme_half_open() +
         labs(x = dist_subtitle_county, y = "") +
         theme(
-          text = element_text("Lato", size = 12, color = "gray20"),
+          text = element_text("Lato", size = 17, color = "gray20"),
           axis.text.y = element_blank(),
           axis.line.y = element_blank(),
           axis.ticks = element_blank(),
-          axis.text.x = element_text(size = 12)
+          axis.text.x = element_text(size = 16)
         )
       incProgress(amount = 0.8)
 
@@ -704,13 +702,16 @@ server <- function(input, output) {
       paste(str_replace_all(str_replace_all(str_squish(str_remove_all(as.character(city()$name), " ")), "--", "-"), "[^[:alnum:]]", "_"), "_data", ".csv", sep = "")
     },
     content = function(file) {
-      write_csv(
+      st_write(
         tbl(con, "urban_area_tiles") %>%
           filter(tile != "tile") %>%
           filter(name %in% !!city()$name) %>%
-          collect(),
-        file
-      )
+          collect() %>%
+          rename(wkt = tile) %>%
+          st_as_sf(wkt = "wkt", crs = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") %>%
+          st_transform(4326), 
+        file, 
+        layer_options = "GEOMETRY=AS_WKT")
     }
   )
 
@@ -719,11 +720,16 @@ server <- function(input, output) {
       paste(str_replace_all(str_replace_all(str_squish(str_remove_all(as.character(county()$county_full_name), " ")), "--", "-"), "[^[:alnum:]]", "_"), "_data", ".csv", sep = "")
     },
     content = function(file) {
-      write_csv(tbl(con, "county_tiles") %>%
+      st_write(tbl(con, "county_tiles") %>%
         filter(tile != "tile") %>%
         filter(name %in% !!county()$county_full_name) %>%
         collect() %>%
-        dplyr::select(-c(short_name, long_name)), file)
+        dplyr::select(-c(short_name, long_name)) %>%
+        rename(wkt = tile) %>%
+        st_as_sf(wkt = "wkt", crs = "+proj=aea +lat_1=29.5 +lat_2=45.5 +lat_0=37.5 +lon_0=-96 +x_0=0 +y_0=0 +ellps=GRS80 +datum=NAD83 +units=m +no_defs") %>%
+        st_transform(4326), 
+        file, 
+        layer_options = "GEOMETRY=AS_WKT")
     }
   )
 }
