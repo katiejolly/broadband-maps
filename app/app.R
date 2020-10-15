@@ -111,9 +111,9 @@ plot_styling <- list(
       title.position = "top",
       # I shift the labels around, the should be placed
       # exactly at the right end of each legend key
-      label.hjust = 1,
+      # label.hjust = 1,
       nrow = 1,
-      byrow = T,
+      # byrow = T,
       order = 1,
       label.position = "bottom"
     ),
@@ -219,24 +219,25 @@ fancy_legend <- list(
   )
 )
 
+
 vals <- reactiveValues()
 
 # Define UI
 ui <- function(request) {
   navbarPage(
-    # tags$head(includeHTML(("www/google-analytics.html"))),
-    "Local Fixed Internet Maps",
+    title = "Local Fixed Internet Maps",
     tabPanel(
       "About",
       fluidPage(
         includeCSS("www/style.css"),
+        tags$head(includeHTML(("www/google-analytics.html"))),
         verticalLayout(
           wellPanel(
-            p("This is a tool to help you learn about broadband internet in different communities across the United States. The goal is to provide people with easy-to-read maps and direct you to data sources if you want something more detailed."),
+            p("This is a tool to help you learn about broadband internet in different communities across the United States. The goal is to provide people with easy-to-read maps and direct you to data sources if you want something more detailed. It is built with data from the Ookla Open Data program."),
             h5("How to use this tool"),
             p("First, decide whether you want to you want maps of urban places or counties. In this case, I am using the definition of urban place from the U.S. Census Bureau-- this means broadly most communities with at least 2,500 people. Keep in mind that some towns are included in the urban areas of others. For example, most Seattle suburbs are included in the Seattle urban area and do not have their own maps. In this quick demo I will make a map of a county."),
             h6("Choose 'random' or a specific place name"),
-            img(src = "choose-county.png", height = "30%", width = "30%"),
+            img(src = "choose-county.png", height = "40%", width = "40%"),
             p("If you know which place you're looking for, just type into the search bar until it comes up. If you are just curious about internet performance in different communities, selecting 'Random' is a fun option to learn about some new ones Once you've chosen, decide whether or not you want a Carto basemap (this is nice for providing some context to the otherwise minimal maps) and then draw the map! This step can take a little bit to load, especially with a basemap."),
             h6("Download the map and/or data"),
             p("Once you have a map you can save it and download the data that was used to draw it. I recommend saving by right-clicking > 'Save Image As.' If you download the data you will get a csv that has the tile geometry as WKT. This is readable by all of the major GIS programs as well as programming languages like R and Python."),
@@ -357,6 +358,37 @@ ui <- function(request) {
 
             br(),
             br()
+          )
+        )
+      )
+    ),
+    tabPanel(
+      "Extend these maps",
+      fluidPage(
+        includeCSS("www/style.css"),
+        verticalLayout(
+          wellPanel(
+            p("These maps were designed with a one size fits most approach. The problem with that approach, though, is that one size rarely fits more than a few uses. That being said, there are many ways to extend these maps and I hope they are useful for a variety of things with the basic maps + many possible extensions."),
+            h5("Adding interactivity"),
+            HTML("<p>Depending on your perspective, one of the downsides of these maps is that they're static. Static maps are nice for their portability, printability, and readability. They lack many other features. There are many code-based approaches to creating an interactive map from this WKT tile data. For the sake of brevity I'll just describe how to use <a href='https://kepler.gl/'>kepler.gl</a> because it's easy, no-code, and free.</p>"),
+            h6("Download the data"),
+            HTML("<p>Once you've chosen a place, click <strong>Draw Map</strong> and then at the bottom of the screen click <strong>Download Data</strong>. I'll use the Sacramento, CA Urbanized Area in this example.</p>"),
+            h6("Open kepler.gl in a web browser"),
+            HTML("<p>Go to <a href = 'https://kepler.gl/demo'>kepler.gl/demo</a> to open a new project. Upload the csv you've just downloaded. You should then see your tiles appear on the map!"),
+            br(),
+            img(src = "kepler_basic.png", height = "60%", width = "60%"),
+            br(),
+            HTML("<p>Next, you can style your tiles however you'd like. I'll use the download speed as my fill variable. To do this, click on your tile layer in the <strong>Layers</strong> panel. Then click on <strong>Fill Color</strong>. You should see some more options drop down. Under <strong>Color Based On</strong> select your variable of interest. I chose avg_d_kbps (average download speed in Kbps).</p>"),
+            br(),
+            img(src = "kepler_filled.png", height = "60%", width = "60%"),
+            br(),
+            p("I also reversed the palette direction,changed the stroke color, and changed to a light basemap for my map. All personal preferences. One of the benefits of an interactive map is the ability to zoom in on areas that bring up questions. For example in this map my eye is drawn to a group of low values in the upper right corner."),
+            br(),
+            img(src = "kepler_cluster.png", height = "60%", width = "60%"),
+            br(),
+            HTML("To share your map you can use the <strong>Share</strong> button at the top of the screen and choose from the available formats."),
+            h5("Many other map and visualization options exist!"),
+            HTML("<p>At Ookla I've written about a few ways to use this data in our <a href='https://github.com/teamookla/ookla-open-data/blob/master/tutorials'>tutorials</a> materials. If you come up with an interesting analysis, I'd love to see it! You can tweet it at me (@katiejolly6) or email it to opendata@ookla.com. This is a project I've built on my own but I am really excited about the work we're doing at Ookla to publish open data for the first time. It's a large undertaking that I've been lucky to be involved with lately and I hope it's useful for anyone looking to learn a little more about the internet.<p>")
           )
         )
       )
@@ -548,7 +580,7 @@ server <- function(input, output) {
         geom_sf(data = tiles_city(), aes(fill = avg_d_mbps_cat), color = "gray15", lwd = 0.04, alpha = 0.8) +
         geom_text_repel(data = label_cities(), aes(label = city, x = X, y = Y), size = label_size, color = "black", family = "Lato", fontface = "bold") +
         plot_styling +
-        labs(caption = paste("", "Data: Ookla, US Census Bureau, Carto,\nOpenStreetMap contributors | Q2 2020 | By Katie Jolly", "\nSpeeds based on mean in tile", sep = "\n"), subtitle = wrapper(title_city(), width = 55)) +
+        labs(caption = paste("", "Data: Ookla, US Census Bureau, Carto, OpenStreetMap\ncontributors | Q2 2020 | By Katie Jolly @katiejolly6", "\nSpeeds based on mean in tile", sep = "\n"), subtitle = wrapper(title_city(), width = 55)) +
         coord_sf(crs = st_crs(city()))
 
       incProgress(amount = 0.8)
@@ -590,13 +622,13 @@ server <- function(input, output) {
           axis.text.y = element_blank(),
           axis.line.y = element_blank(),
           axis.ticks = element_blank(),
-          axis.text.x = element_text(size = 16)
+          axis.text.x = element_text(size = 15)
         )
 
       p_city <- ggdraw() +
         draw_plot(p_city) +
         draw_plot(basemap, x = 0, y = 0.2, width = 0.15, height = 0.15) +
-        draw_plot(distribution, x = 0, y = 0.4, width = 0.15, height = 0.15)
+        draw_plot(distribution, x = 0, y = 0.4, width = 0.18, height = 0.15)
 
 
       vals$p_city <- p_city
@@ -617,7 +649,7 @@ server <- function(input, output) {
           family = "Lato", fontface = "bold"
         ) +
         plot_styling +
-        labs(caption = paste("", "Data: Ookla, US Census Bureau, Carto,\nOpenStreetMap contributors | Q2 2020 | By Katie Jolly", "\nSpeeds based on mean in tile", sep = "\n"), subtitle = paste0("Fixed internet download speed in ", title_county(), "\n")) +
+        labs(caption = paste("", "Data: Ookla, US Census Bureau, Carto, OpenStreetMap\ncontributors | Q2 2020 | By Katie Jolly @katiejolly6", "\nSpeeds based on mean in tile", sep = "\n"), subtitle = paste0("Fixed internet download speed in ", title_county(), "\n")) +
         coord_sf(crs = st_crs(county()))
 
 
@@ -661,14 +693,14 @@ server <- function(input, output) {
           axis.text.y = element_blank(),
           axis.line.y = element_blank(),
           axis.ticks = element_blank(),
-          axis.text.x = element_text(size = 16)
+          axis.text.x = element_text(size = 15)
         )
       incProgress(amount = 0.8)
 
       p_county <- ggdraw() +
         draw_plot(p_county) +
         draw_plot(basemap, x = 0, y = 0.1, width = 0.15, height = 0.15) +
-        draw_plot(distribution, x = 0, y = 0.3, width = 0.15, height = 0.15)
+        draw_plot(distribution, x = 0, y = 0.3, width = 0.18, height = 0.15)
       vals$p_county <- p_county
 
       incProgress(0.9)
